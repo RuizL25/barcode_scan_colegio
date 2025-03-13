@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Institucion lagarita</title>
+    <h1>Titulo</h1>
+    <style>
+        #camera {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+        }
+        #camera video {
+            width: 100%;
+            height: 100%;
+        }
+        #camera canvas.drawingBuffer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="camera" style="width:100%"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
+    <script>
+        const quaggaConf = {
+            inputStream: {
+                name: "Live",
+                type: "LiveStream",
+                target: document.querySelector("#camera"),
+                constraints: {
+                    width: 640,
+                    height: 480,
+                    facingMode: "environment",
+                    aspect_ratio: { min: 1, max: 2 }
+                }
+            },
+            decoder: {
+                readers: ["code_39_reader"],
+                multiple: false
+            }
+        }
+
+        Quagga.init(quaggaConf, (err) => {
+            if (err) {
+                console.error(err);
+                return;
+            }
+            Quagga.start();
+        });
+
+        Quagga.onDetected((data) => {
+            alert(data.codeResult.code);
+            Quagga.stop();
+        });
+
+    </script>
+</body>
+</html>
