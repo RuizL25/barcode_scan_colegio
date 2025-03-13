@@ -56,7 +56,7 @@
 
         Quagga.onDetected((data) => {
             alert(data.codeResult.code);
-            Quagga.stop();
+            window.location.href = `${window.location.origin}/index`;
         });
 
     </script>
