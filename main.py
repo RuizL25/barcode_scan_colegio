@@ -3,7 +3,7 @@ import pandas as pd
 import json
 
 # Ruta del archivo PDF
-pdf_path = "/mnt/data/students_bus.pdf"
+pdf_path = "students_bus.pdf"
 
 # Lista para almacenar los datos
 records = []
@@ -35,11 +35,11 @@ with pdfplumber.open(pdf_path) as pdf:
 df = pd.DataFrame(records)
 
 # Guardar como Excel
-excel_path = "/mnt/data/students_bus.xlsx"
+excel_path = "students_bus2.xlsx"
 df.to_excel(excel_path, index=False)
 
 # Guardar como JSON
-json_path = "/mnt/data/students_bus.json"
+json_path = "students_bus2.json"
 with open(json_path, "w", encoding="utf-8") as f:
     json.dump(records, f, ensure_ascii=False, indent=4)
 
