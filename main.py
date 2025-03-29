@@ -35,11 +35,11 @@ with pdfplumber.open(pdf_path) as pdf:
 df = pd.DataFrame(records)
 
 # Guardar como Excel
-excel_path = "students_bus2.xlsx"
+excel_path = "students_bus_final.xlsx"
 df.to_excel(excel_path, index=False)
 
 # Guardar como JSON
-json_path = "students_bus2.json"
+json_path = "students_bus_final.json"
 with open(json_path, "w", encoding="utf-8") as f:
     json.dump(records, f, ensure_ascii=False, indent=4)
 
