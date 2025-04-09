@@ -81,7 +81,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="js/buslogic.js"></script>
+    <script src="js/buslogicVados.js"></script>
     <script >
       const quaggaConf = {
           inputStream: {
@@ -109,7 +109,7 @@
   
       Quagga.onDetected(function (result) {
           Quagga.stop(); // Detener la lectura del código de barras
-          showcodes(result.codeResult.code); // Llamar a la función para mostrar el código
+          showcodes(result.codeResult.code, "VADOS"); // Llamar a la función para mostrar el código
         });
   </script>
     <script

@@ -109,7 +109,7 @@
   
       Quagga.onDetected(function (result) {
           Quagga.stop(); // Detener la lectura del código de barras
-          showcodes(result.codeResult.code); // Llamar a la función para mostrar el código
+          showcodes(result.codeResult.code, "PATIOS"); // Llamar a la función para mostrar el código
         });
   </script>
     <script
