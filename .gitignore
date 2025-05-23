@@ -4,3 +4,9 @@ filtered_data.json
 students_bus_cleaned.json
 students_bus_final.xlsx
 students_bus.pdf
+
+node_modules/
+
+trash/
+
+ilovepdf_pages-to-jpg/
