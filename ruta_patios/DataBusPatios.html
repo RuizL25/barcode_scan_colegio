@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Institución Lagarita</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="/barcode_scan_colegio/files/logo.png"
+    />
+    <link rel="stylesheet" href="/barcode_scan_colegio/css/ruta_patios.css" />
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+      <div class="container-fluid">
+        <img style="width: 40px;" src="/barcode_scan_colegio/files/logo.png" alt="logo">
+      </div>
+    </nav>
+    <div class="table-responsive">
+      <table id="table-registrados" class="table table-primary">
+        <thead>
+          <tr>
+            <th scope="col">Nombre</th>
+            <th scope="col">Ruta</th>
+            <th scope="col">Fecha</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr id="row-registrados">
+            <td id="nombre"></td>
+            <td id="codigo"></td>
+            <td id="ruta"></td>
+            <td id="fecha"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <button id="btn-descargar-patios">Descargar informe de la semana</button>
+
+    <a href="/barcode_scan_colegio/ruta_patios/MainRutaPatios.html">
+      <button>Regresar al inicio de la ruta patios</button>
+    </a>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script type="module">
+      import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+      const supabase = createClient(
+        "https://xlzzazklwtausynmthxb.supabase.co",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsenphemtsd3RhdXN5bm10aHhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5Njc3OTQsImV4cCI6MjA2MzU0Mzc5NH0.gxxzcc7oeA6rqo5tKxGdAC8iRIyckMGK-E1n-fDuQlM"
+      );
+
+      async function fetchData() {
+        fecha_cinco_dias_antes = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
+        const { data, error } = await supabase
+          .from("reportes")
+          .select("*")
+          .eq("ruta", "PATIOS")
+          .order("fecha_escaneo", { ascending: false });
+
+        if (error) {
+          console.error("Error fetching data:", error);
+        } else {
+          const tableBody = document.querySelector("#table-registrados tbody");
+          data.forEach((row) => {
+            const newRow = document.createElement("tr");
+            newRow.innerHTML = `
+                <td>${row.nombre}</td>
+                <td>${row.ruta}</td>
+                <td>${row.fecha_escaneo}</td>`;
+            tableBody.appendChild(newRow);
+          });
+        }
+      }
+
+      async function descargar() {
+        const fecha = new Date().toISOString().split("T")[0];
+        const { data, error } = await supabase
+          .from("reportes")
+          .select("*")
+          .eq("ruta", "PATIOS")
+          .lte("fecha_escaneo", fecha)
+          .order("fecha_escaneo", { ascending: false });
+
+        if (error) {
+          console.error("Error fetching data:", error);
+        } else {
+          // Crear instancia jsPDF
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF();
+
+          const columns = ["nombre", "ruta", "fecha_escaneo"];
+
+          const rows = data.map((item) => [
+            item.nombre,
+            item.ruta,
+            item.fecha_escaneo,
+          ]);
+
+          doc.setFontSize(18);
+          doc.text("Informe de Reportes - Ruta PATIOS", 14, 22);
+
+          doc.setFontSize(12);
+          doc.text(`Fecha: ${fecha}`, 14, 30);
+
+          doc.autoTable({
+            startY: 40,
+            head: [columns],
+            body: rows,
+          });
+
+          async function deleteData() {
+            const { data, error } = await supabase
+              .from("reportes")
+              .delete()
+              .eq("ruta", "PATIOS")
+              .lte("fecha_escaneo", fecha);
+
+            if (error) {
+              console.error("Error deleting data:", error);
+            } else {
+              console.log("Data deleted successfully:", data);
+            }
+          }
+
+          setTimeout(() => {
+            const fileName = `reporte_patios_${fecha}.pdf`;
+            doc.save(fileName);
+          }, 2000);
+        }
+      }
+
+      document
+        .getElementById("btn-descargar-patios")
+        .addEventListener("click", descargar);
+
+      fetchData();
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  </body>
+</html>

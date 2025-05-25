@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <!-- favicon -->
+    <link
+      rel="icon"
+      type="image/png"
+      href="/barcode_scan_colegio/files/logo.png"
+    />
+
+     
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="/barcode_scan_colegio/css/ruta_patios.css" />
+    <title>Institución Lagarita</title>
+    <style>
+      #camera video {
+        width: 100%;
+        max-width: 640px;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+      <div class="container-fluid">
+        <img style="width: 40px;" src="/barcode_scan_colegio/files/logo.png" alt="logo">
+      </div>
+    </nav>
+    <div class="container-fluid titulo row">
+      <h1 class="col">Escanea el codigo de un estudiante a la vez</h1>
+    </div>
+    <div class="container-fluid" id="camera" style="width: 100%"></div>
+
+    <div id="camera" style="width: 100%"></div>
+    <div id="estudiante">
+      <h2>Estudiante</h2>
+      <p id="nombre">Nombre:</p>
+      <p id="codigo">Codigo:</p>
+      <p id="ruta">Ruta:</p>
+      <p id="fecha">Fecha:</p>
+      <a href="/barcode_scan_colegio/ruta_patios/ScanBusPatios.html">
+        <button>Regresar a escanear otro estudiante</button>
+      </a>
+      <a href="/barcode_scan_colegio/ruta_patios/MainRutaPatios.html">
+        <button>Regresar al inicio de la ruta patios</button>
+      </a>
+    </div>
+    <a href="/barcode_scan_colegio/ruta_patios/MainRutaPatios.html">
+      <button>Regresar</button>
+    </a>
+
+    <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script type="module">
+      import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+      const quaggaConf = {
+        inputStream: {
+          target: document.querySelector("#camera"),
+          // new
+          type: "LiveStream",
+          constraints: {
+            width: { min: 640 },
+            height: { min: 480 },
+            facingMode: "environment",
+            aspectRatio: { min: 1, max: 2 },
+          },
+        },
+        decoder: {
+          readers: ["code_39_reader", "code_39_vin_reader"],
+        },
+      };
+
+      Quagga.init(quaggaConf, function (err) {
+        if (err) {
+          return console.log(err);
+        }
+        Quagga.start();
+      });
+
+      Quagga.onDetected(function (result) {
+        Quagga.stop();
+        const supabase = createClient(
+          "https://xlzzazklwtausynmthxb.supabase.co",
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inhsenphemtsd3RhdXN5bm10aHhiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5Njc3OTQsImV4cCI6MjA2MzU0Mzc5NH0.gxxzcc7oeA6rqo5tKxGdAC8iRIyckMGK-E1n-fDuQlM"
+        );
+        const codigo = result.codeResult.code;
+        const fecha = new Date().toISOString().split("T")[0];
+        async function getEstudiante() {
+          const { data: estudiante, error } = await supabase
+            .from("estudiantes")
+            .select("*")
+            .eq("codigo", codigo);
+          if (error) {
+            console.error("Error fetching data:", error);
+          } else {
+            if (estudiante) {
+              if (estudiante[0].ruta != "PATIOS") {
+                document.getElementById("nombre").innerText =
+                  "El estudiante no pertenece a la ruta PATIOS pertenece a la ruta " +
+                  estudiante[0].ruta;
+                document.getElementById("estudiante").style.display = "block";
+              } else {
+                if (await validateEstudianteEscaneo(estudiante[0].nombre)) {
+                  document.getElementById("nombre").innerText =
+                    "Nombre: " + estudiante[0].nombre;
+                  document.getElementById("codigo").innerText =
+                    "Codigo: " + estudiante[0].codigo;
+                  document.getElementById("ruta").innerText =
+                    "Ruta: " + estudiante[0].ruta;
+                  document.getElementById("fecha").innerText =
+                    "Fecha: " + fecha;
+                  document.getElementById("estudiante").style.display = "block";
+
+                  insertRegistro(estudiante[0].nombre, fecha);
+                } else {
+                  document.getElementById("nombre").innerText =
+                    "El estudiante ya ha escaneado el codigo el dia de hoy";
+                  document.getElementById("estudiante").style.display = "block";
+                }
+              }
+            } else {
+              document.getElementById("nombre").innerText =
+                "Nombre: No se encontro el estudiante";
+              document.getElementById("estudiante").style.display = "block";
+            }
+          }
+        }
+
+        async function insertRegistro(nombre, fecha) {
+          const { data, error } = await supabase.from("reportes").insert([
+            {
+              nombre: nombre,
+              ruta: "PATIOS",
+              fecha_escaneo: fecha,
+            },
+          ]);
+          if (error) {
+            console.error("Error inserting data:", error);
+          } else {
+            console.log("Data inserted successfully:", data);
+          }
+        }
+        getEstudiante();
+        async function validateEstudianteEscaneo(nombre) {
+          const { data, error } = await supabase
+            .from("reportes")
+            .select("*")
+            .eq("nombre", nombre);
+          if (error) {
+            console.error("Error fetching data:", error);
+          } else {
+            if (data.length > 0) {
+              return false;
+            } else {
+              return true;
+            }
+          }
+        }
+      });
+    </script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>
