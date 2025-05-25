@@ -60,7 +60,6 @@
       );
 
       async function fetchData() {
-        fecha_cinco_dias_antes = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000);
         const { data, error } = await supabase
           .from("reportes")
           .select("*")
@@ -84,13 +83,11 @@
 
       async function descargar() {
         const fecha = new Date().toISOString().split("T")[0];
-        const fecha_hace_una_semana = fecha - 7 * 24 * 60 * 60 * 1000;
         const { data, error } = await supabase
           .from("reportes")
           .select("*")
           .eq("ruta", "COROZAL")
           .lte("fecha_escaneo", fecha)
-          .gte("fecha_escaneo", fecha_hace_una_semana)
           .order("fecha_escaneo", { ascending: false });
 
         if (error) {
