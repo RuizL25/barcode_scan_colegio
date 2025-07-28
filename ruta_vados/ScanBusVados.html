@@ -106,8 +106,7 @@
                   estudiante[0].ruta;
                 document.getElementById("estudiante").style.display = "block";
               } else {
-                if (await validateEstudianteEscaneo(estudiante[0].nombre)) {
-                  document.getElementById("nombre").innerText =
+                document.getElementById("nombre").innerText =
                     "Nombre: " + estudiante[0].nombre;
                   document.getElementById("codigo").innerText =
                     "Codigo: " + estudiante[0].codigo;
@@ -118,11 +117,6 @@
                   document.getElementById("estudiante").style.display = "block";
 
                   insertRegistro(estudiante[0].nombre, fecha);
-                } else {
-                  document.getElementById("nombre").innerText =
-                    "El estudiante ya ha escaneado el codigo el dia de hoy";
-                  document.getElementById("estudiante").style.display = "block";
-                }
               }
             } else {
               document.getElementById("nombre").innerText =
